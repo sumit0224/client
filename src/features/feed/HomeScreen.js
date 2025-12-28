@@ -143,20 +143,27 @@ const HomeScreen = ({ navigation }) => {
             }
         });
 
-    const animatedCardStyle = useAnimatedStyle(() => ({
-        transform: [
-            { translateX: translateX.value },
-            { translateY: translateY.value },
-            {
-                rotate: interpolate(
-                    translateX.value,
-                    [-width / 2, 0, width / 2],
-                    ['-10deg', '0deg', '10deg'],
-                    Extrapolate.CLAMP
-                )
-            }
-        ]
-    }));
+    const animatedCardStyle = useAnimatedStyle(() => {
+        const rotateVal = interpolate(
+            translateX.value,
+            [-width / 2, 0, width / 2],
+            [-10, 0, 10], // Interpolate numbers, not strings
+            Extrapolate.CLAMP
+        );
+
+        // Guard against NaN to prevent "NaNdeg" or java crashes
+        const safeRotateVal = isNaN(rotateVal) ? 0 : rotateVal;
+
+        return {
+            transform: [
+                { translateX: translateX.value },
+                { translateY: translateY.value },
+                {
+                    rotate: `${safeRotateVal}deg`
+                }
+            ]
+        };
+    });
 
     // Render Empty State
     if (!isLoading && (profiles.length === 0 || currentIndex >= profiles.length)) {

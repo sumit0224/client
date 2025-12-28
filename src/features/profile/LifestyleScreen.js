@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 const LifestyleScreen = ({ navigation }) => {
     const profileStore = useProfileStore();
-    const { token, login } = useAuthStore(); // We need to update user in auth store after success
+    const { token, login, user } = useAuthStore(); // We need to update user in auth store after success
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const LIFESTYLE_OPTIONS = [
@@ -44,12 +44,23 @@ const LifestyleScreen = ({ navigation }) => {
 
             const response = await profileApi.updateProfile(payload, token);
 
-            // Update auth store with new user data (which has isProfileCompleted: true)
-            login(response.user, token);
-            // reset profile store
+            // 1. Merge existing user with response data to ensure we don't lose fields
+            // 2. Explicitly set isProfileCompleted to true to trigger AppNavigator switch
+            const updatedUser = {
+                ...user,
+                ...response.user,
+                isProfileCompleted: true
+            };
+
+            // Update auth store
+            login(updatedUser, token);
+
+            // Clear profile store
             profileStore.resetProfile();
-            // Navigation handled by AppNavigator observing isProfileCompleted
+
+            // Note: conformant to AppNavigator, state update triggers navigation switch automatically
         } catch (error) {
+            console.error(error);
             Alert.alert('Error', error.error || 'Failed to update profile');
         } finally {
             setIsSubmitting(false);

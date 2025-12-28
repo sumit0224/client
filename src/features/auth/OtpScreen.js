@@ -68,9 +68,13 @@ const OtpScreen = ({ route, navigation }) => {
         setIsLoading(true);
         try {
             const data = await authApi.verifyOtp(phoneNumber, enteredOtp);
+            // The backend should return the user object with an 'isProfileCompleted' flag.
+            // If isProfileCompleted is true, AppNavigator switches to Main stack.
+            // If false, it switches to Registration stack (Name, etc).
             login(data.user, data.token);
-            // Assuming AppNavigator handles navigation on auth state change
+
         } catch (err) {
+            console.error(err);
             Alert.alert('Error', err.error || 'Invalid OTP');
         } finally {
             setIsLoading(false);
